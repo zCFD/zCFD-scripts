@@ -84,7 +84,9 @@ goto :init
     goto :parse
 
 :validate
-    if not defined UnNamedArgument call :missing_argument & goto :end
+    if not defined HOST call :missing_argument & goto :end
+    if not defined ZCFD_HOME call :missing_argument & goto :end
+    if not defined NOTEBOOK_DIR call :missing_argument & goto :end
 
 :main
     REM get unused remote port

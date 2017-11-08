@@ -90,9 +90,9 @@ goto :init
 
 :main
     REM get unused remote port
-    REM plink.exe %HOST% "python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()'"
-    
-    FOR /F "delims=" %i IN ('plink.exe %HOST% "python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()'"') DO set PORT=%i
+    plink.exe %HOST% "python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()'" > port.txt
+    set /p PORT= < port.txt
+    del port.txt
         
     REM start web browser
     echo "Access your notebook server at"

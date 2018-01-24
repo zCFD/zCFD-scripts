@@ -19,9 +19,9 @@ Usage: ${0##*/} [-h] ...
 Start remote jupyter notebook
 
     -h          display this help and exit
-    -s          Remote server host
-    -p          Path zCFD
-    -d          Remote notebook directory
+    -s          Remote server host on which to run the notebook server
+    -p          Path zCFD on remote server
+    -d          Notebook root directory on remote server to browse from
     -l          Local port (default 8888)
 EOF
 }

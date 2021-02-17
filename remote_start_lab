@@ -1,0 +1,111 @@
+#!/bin/bash
+
+set -e
+
+HOST='UNDEFINED'
+ZCFD_HOME='UNDEFINED'
+
+NOTEBOOK_DIR=/tmp
+
+PORT='UNDEFINED'
+LOCAL_PORT=8888
+# Attempt to find free local port by default
+LOCAL_PORT=`python -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()'`
+
+# Usage info
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-h] ...
+Start remote jupyter notebook
+
+    -h          display this help and exit
+    -s          Remote server host
+    -p          Path zCFD
+    -d          Remote notebook directory
+    -l          Local port (default 8888)
+EOF
+}
+
+while [ "$#" -gt 0 ]; do
+    case $1 in
+        -h|-\?|--help)   # Call a "show_help" function to display a synopsis, then exit.
+            show_help
+            exit
+            ;;
+        -s|--server)
+            if [ "$#" -gt 1 ]; then
+                HOST=$2
+                shift 2
+                continue
+            else
+                echo 'ERROR: Must specify a non-empty "--host N" argument.' >&2
+                exit 1
+            fi
+            ;;
+        -l|--local)
+            if [ "$#" -gt 1 ]; then
+                LOCAL_PORT=$2
+                shift 2
+                continue
+            else
+                echo 'ERROR: Must specify a non-empty "--local N" argument.' >&2
+                exit 1
+            fi
+            ;; 
+        -p|--path)
+            if [ "$#" -gt 1 ]; then
+                ZCFD_HOME=$2
+                shift 2
+                continue
+            else
+                echo 'ERROR: Must specify a non-empty "--path N" argument.' >&2
+                exit 1
+            fi
+            ;;
+        -d|--dir)
+            if [ "$#" -gt 1 ]; then
+                NOTEBOOK_DIR=$2
+                shift 2
+                continue
+            else
+                echo 'ERROR: Must specify a non-empty "--dir N" argument.' >&2
+                exit 1
+            fi
+            ;;
+        --)              # End of all options.
+            shift
+            break
+            ;;
+        -?*)
+            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            ;;
+        *)               # Default case: If no more options then break out of the loop.
+            break
+    esac
+
+    shift
+done
+
+if [ "$HOST" == "UNDEFINED" ] ; then
+    echo "Exiting - host name not defined"
+    show_help
+    exit 1
+fi
+
+if [ "$ZCFD_HOME" == "UNDEFINED" ] ; then
+    echo "Exiting - zCFD path not defined"
+    show_help
+    exit 1
+fi
+
+PORT=`ssh ${HOST} "python -c 'import socket; s=socket.socket(); s.bind((\"\", 0)); print(s.getsockname()[1]); s.close()'"`
+
+echo Access your notebook server at
+echo http://localhost:${LOCAL_PORT}/
+
+if [ `uname` == "Darwin" ] ; then
+    open http://localhost:${LOCAL_PORT}/
+fi
+
+ssh -t -o "LocalForward ${LOCAL_PORT} localhost:${PORT}" ${HOST} "${ZCFD_HOME}/bin/start_lab -p $PORT -d $NOTEBOOK_DIR"
+
